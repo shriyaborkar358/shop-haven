@@ -98,7 +98,7 @@ const postLogin = async (req, res) => {
   const isPasswordMatch = bcrypt.compareSync(password, user.password);
 
   if(isPasswordMatch){
-    const jwtToken = jwt.sign({email: user.email }, process.env.JWT_SECRET);
+    const jwtToken = jwt.sign({email: user.email, role: user.role }, process.env.JWT_SECRET);
 
     res.setHeader("Authorization", `Bearer ${jwtToken}`)
     return res.json({
