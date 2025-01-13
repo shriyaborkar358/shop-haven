@@ -4,36 +4,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
-import jwt from "jsonwebtoken";
-
 import { postSignup, postLogin } from "./controllers/user.js";
+import { jwtVerifyMiddleware,  checkRoleMiddleware} from "./middlewares/auth.js";
+import { postProducts } from "./controllers/product.js";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-// Middleware
-const jwtVerifyMiddleware = async (req, res, next) => {
-  const jwtToken = req.headers.authorization.split(" ")[1];
-
-  if (!jwtToken) {
-    return res.status(401).json({
-      success: false,
-      message: "JWT Token missing",
-    });
-  }
-
-  try {
-    const decoded = await jwt.verify(jwtToken, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid JWT token",
-    });
-  }
-};
 
 // connect to mongoDB
 const connectDB = async () => {
@@ -51,22 +28,12 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Auth API's
 app.post("/signup", postSignup);
 app.post("/login", postLogin);
 
-app.post("/order", jwtVerifyMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    message: "Order placed successfully",
-  });
-});
-
-app.post("/payment", jwtVerifyMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    message: "Payment successful",
-  });
-});
+// Product API's
+app.post("/products", jwtVerifyMiddleware, checkRoleMiddleware, postProducts)
 
 app.use("*", (req, res) => {
   res.status(404).json({
