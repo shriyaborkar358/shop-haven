@@ -21,8 +21,8 @@ const postProducts = async (req, res) => {
     "images",
   ];
 
-  for(const field of mandatoryFields) {
-    if(!req.body[field]) {
+  for (const field of mandatoryFields) {
+    if (!req.body[field]) {
       return res
         .status(400)
         .json({ success: false, message: `${field} is required` });
@@ -40,7 +40,7 @@ const postProducts = async (req, res) => {
     tags,
   });
 
-  try{
+  try {
     const savedProduct = await newProduct.save();
 
     return res.json({
@@ -48,8 +48,7 @@ const postProducts = async (req, res) => {
       message: "Product created successfully",
       data: savedProduct,
     });
-  }
-  catch(e){
+  } catch (e) {
     return res.status(400).json({
       success: false,
       message: e.message,
@@ -57,4 +56,28 @@ const postProducts = async (req, res) => {
   }
 };
 
-export { postProducts };
+const getProducts = async (req, res) => {
+  const { limit, search} = req.query;
+  const products = await Product.find({
+   name: {
+    $regex : new RegExp(search || ""),
+    $options : "i"
+   },
+   shortDescription:{
+    $regex : new RegExp(search || ""),
+   $options : "i"
+  },
+  longDescription:{
+    $regex : new RegExp(search || ""),
+   $options : "i"
+  }
+  }).limit(parseInt(limit || 100));
+
+  return res.json({
+    success: true,
+    data: products,
+    message: "Products fetched successfully",
+  });
+};
+
+export { postProducts, getProducts };
